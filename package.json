@@ -1,0 +1,22 @@
+{
+  "name": "bot-trader",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GabrielDuarte14/Bot-Trader.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/GabrielDuarte14/Bot-Trader/issues"
+  },
+  "homepage": "https://github.com/GabrielDuarte14/Bot-Trader#readme",
+  "dependencies": {
+    "ws": "^8.5.0"
+  }
+}
