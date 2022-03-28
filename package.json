@@ -17,6 +17,8 @@
   },
   "homepage": "https://github.com/GabrielDuarte14/Bot-Trader#readme",
   "dependencies": {
+    "crypto-js": "^4.1.1",
+    "moment": "^2.29.1",
     "ws": "^8.5.0"
   }
 }
