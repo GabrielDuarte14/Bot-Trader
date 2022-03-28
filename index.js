@@ -3,8 +3,8 @@
 const WebSocket = require('ws');
 var moment = require('moment');
 const CREDENCIAIS = require('./credenciais')
-const email = CREDENCIAIS.email;
-const senha = CREDENCIAIS.senha;
+//const email = CREDENCIAIS.email;
+//const senha = CREDENCIAIS.senha;
 //WebSocketAPI Address
 var wsAddress = 'wss://api.foxbit.com.br/';
 var authenticated = false;
@@ -185,21 +185,24 @@ function webLogin() {
 
     });
 }
-function instruments(){
-    messageFrame.n = 'GetTickerHistory';
-    var agora = new Date();
+
+async function instruments(){
+    messageFrame.n = 'SubscribeLevel1';
+    
    // console.log(hora)
     requestPayload2 = {
-        "InstrumentId": 42,
-        "Interval": 60,
-        "FromDate": "2022-03-27T21:25:00",
-        "ToDate": "2022-03-27T21:26:00",
+        "OMSId": 1,
+        "InstrumentId": 42
     };
+    while(true){
     messageFrame.o = JSON.stringify(requestPayload2);
     ws.send(JSON.stringify(messageFrame), function ack(error) {
         console.log('GetOpenOrders.error: (' + error + ')');
 
     });
+    
+    await new Promise(r => setTimeout(r, 3000));
+}
 }
 function dados() {
 
