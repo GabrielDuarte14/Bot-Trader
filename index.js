@@ -9,7 +9,8 @@ const CREDENCIAIS = require('./credenciais')
 var wsAddress = 'wss://api.foxbit.com.br/';
 var authenticated = false;
 var precoComprado = 0;
-
+var temOrdem = false;
+var comprou = false;
 //Message Frame
 var messageFrame = {
 
@@ -78,8 +79,8 @@ process.stdin.on('readable', async () => {
 
         login();
         setTimeout(() => {
-            //instruments();
-            getOrders()
+            instruments();
+            //getOrders()
             //42
         }, 2000);
 
@@ -87,7 +88,7 @@ process.stdin.on('readable', async () => {
 });
 
 
-ws.on('message', function incoming(data) {
+ws.on('message', async function incoming(data) {
 
     //data contém o payload de resposta
 
@@ -96,14 +97,16 @@ ws.on('message', function incoming(data) {
 
     if (resultado.n == "GetOpenOrders") {
         resultado = JSON.parse(resultado.o)
-        console.log(resultado[0])
+        //console.log(resultado[0])
     }
     //console.log(resultado)
-    if (resultado.n == "SubscribeLevel1" || resultado.n == "GetOpenOrders") {
-        compararPreco(resultado.o)
+    if (resultado.n == "SubscribeLevel1" || resultado.n == "GetOpenOrders" || resultado.n == "Level1UpdateEvent") {
+        getOrders();
+        await new Promise(r => setTimeout(r, 3000));
+        compararPreco(resultado)
     }
     if(resultado.o == null){
-    console.log("resultado vazio")
+   // console.log("resultado vazio")
 }
 });
 
@@ -157,28 +160,44 @@ function cancelOrders() {
     messageFrame.o = JSON.stringify(requestPayload2);
     ws.send(JSON.stringify(messageFrame), function ack(error) {
         if (error != undefined) {
-            console.log('GetOpenOrders.error: (' + error + ')');
+            //console.log('GetOpenOrders.error: (' + error + ')');
         }
     });
 
 }
 
+
 function compararPreco(objetoPreco) {
-    if(objetoPreco == null){
-        var preco = JSON.parse(objetoPreco);
-        if (precoComprado != 0 && preco.BestBid > precoComprado) {
-            cancelOrders();
-            SendOrder(preco.BestBid + 0.0001);
-            precoComprado = preco.BestBid + 0.0001;
-        }
-        if (precoComprado == 0) {
-            SendOrder(preco.BestBid + 0.0001);
-            precoComprado = preco.BestBid + 0.0001;
-            console.log(preco.BestBid + ' comprado!!!')
-        }
-    }
-   //tenho o preço comprado e se tem ordem aberta == null se não tiver ordem aberta
-}
+    console.log("entrouuuuu --------------------------------------------------------")
+    //checando se há ordem aberta, caso tenha, não executara a parte de compra
+     if(objetoPreco.n == "GetOpenOrders" && objetoPreco.o != null){
+         temOrdem = true;
+         console.log("tem ordem")
+     }else if(objetoPreco.n == "GetOpenOrders" && objetoPreco.o == null && precoComprado!=0){
+         comprou = true;
+            console.log("comprou")
+     }
+     if(objetoPreco.n == "SubscribeLevel1" && temOrdem == false && comprou == false){
+         var preco = JSON.parse(objetoPreco.o);
+         SendOrder(preco.BestBid + 0.0001);
+         precoComprado = preco.BestBid + 0.0001;
+         console.log(preco.BestBid + ' comprado!!!')
+ 
+     }else if(objetoPreco.n == "SubscribeLevel1" && temOrdem){
+         var preco = JSON.parse(objetoPreco.o);
+         cancelOrders();
+         temOrdem = false;
+             SendOrder(preco.BestBid + 0.0001);
+             precoComprado = preco.BestBid + 0.0001;
+             console.log(preco.BestBid + ' comprado!!! 2')
+     }
+     console.log('to saindo')
+     //checar se o bestBid é maior que o precoComprado
+     //executar para ver se a ordem vai ser criada
+    //tenho o preço comprado e se tem ordem aberta == null se não tiver ordem aberta
+ }
+ 
+ 
 
 function SendOrder(valorCompra) {
     messageFrame.n = 'SendOrder';
@@ -219,7 +238,7 @@ function getOrders(){
     
         messageFrame.o = JSON.stringify(requestPayload2);
         ws.send(JSON.stringify(messageFrame), function ack(error) {
-            console.log('GetOpenOrders.error: (' + error + ')');
+            //console.log('GetOpenOrders.error: (' + error + ')');
 
         });
 
@@ -257,7 +276,7 @@ async function instruments() {
     while (true) {
         messageFrame.o = JSON.stringify(requestPayload2);
         ws.send(JSON.stringify(messageFrame), function ack(error) {
-            console.log('GetOpenOrders.error: (' + error + ')');
+            //console.log('GetOpenOrders.error: (' + error + ')');
 
         });
 
